@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-server-oxigraph"
+version = "0.1.0"
+description = "MCP server for PyOxigraph"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+keywords = ["mcp", "oxigraph", "rdf", "sparql", "knowledge graph"]
+authors = [
+    {name = "Identimoji", email = "help@identimoji.io"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pyoxigraph==0.4.9",
+    "fastmcp>=0.3.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/identimoji/mcp-server-oxigraph"
+"Bug Tracker" = "https://github.com/identimoji/mcp-server-oxigraph/issues"
+
+[project.scripts]
+oxigraph-mcp = "mcp_server_oxigraph.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_server_oxigraph"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+]
