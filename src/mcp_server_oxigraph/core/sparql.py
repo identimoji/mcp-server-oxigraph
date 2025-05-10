@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 _PREPARED_QUERIES = {}
 
 
-def oxigraph_query(query: str, store_id: Optional[str] = None) -> Dict[str, Any]:
+def oxigraph_query(query: str, store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute a SPARQL query against the store.
     
@@ -26,10 +26,10 @@ def oxigraph_query(query: str, store_id: Optional[str] = None) -> Dict[str, Any]
     Returns:
         Query results dictionary
     """
-    store = oxigraph_get_store(store_id)
+    store = oxigraph_get_store(store_path)
     
     if not store:
-        raise ValueError(f"Store with ID '{store_id}' not found")
+        raise ValueError(f"Store with path '{store_path}' not found")
     
     try:
         results = store.query(query)
@@ -73,7 +73,7 @@ def oxigraph_query(query: str, store_id: Optional[str] = None) -> Dict[str, Any]
         raise
 
 
-def oxigraph_update(update: str, store_id: Optional[str] = None) -> Dict[str, Any]:
+def oxigraph_update(update: str, store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute a SPARQL update against the store.
     
@@ -84,10 +84,10 @@ def oxigraph_update(update: str, store_id: Optional[str] = None) -> Dict[str, An
     Returns:
         Success dictionary
     """
-    store = oxigraph_get_store(store_id)
+    store = oxigraph_get_store(store_path)
     
     if not store:
-        raise ValueError(f"Store with ID '{store_id}' not found")
+        raise ValueError(f"Store with path '{store_path}' not found")
     
     try:
         store.update(update)
@@ -106,7 +106,7 @@ def oxigraph_query_with_options(query: str,
                              default_graph_uris: Optional[List[str]] = None,
                              named_graph_uris: Optional[List[str]] = None,
                              use_default_graph_as_union: bool = False,
-                             store_id: Optional[str] = None) -> Dict[str, Any]:
+                             store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute a SPARQL query with custom options.
     
@@ -120,10 +120,10 @@ def oxigraph_query_with_options(query: str,
     Returns:
         Query results dictionary
     """
-    store = oxigraph_get_store(store_id)
+    store = oxigraph_get_store(store_path)
     
     if not store:
-        raise ValueError(f"Store with ID '{store_id}' not found")
+        raise ValueError(f"Store with path '{store_path}' not found")
     
     try:
         # If the store has query_with_options method, use it
@@ -243,7 +243,7 @@ def oxigraph_prepare_query(query_template: str) -> Dict[str, Any]:
 
 def oxigraph_execute_prepared_query(prepared_query_id: str, 
                                    parameters: Dict[str, Any],
-                                   store_id: Optional[str] = None) -> Dict[str, Any]:
+                                   store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute a previously prepared SPARQL query.
     
@@ -288,7 +288,7 @@ def oxigraph_execute_prepared_query(prepared_query_id: str,
                 query = query.replace(placeholder, str(value))
         
         # Execute the query
-        return oxigraph_query(query, store_id)
+        return oxigraph_query(query, store_path)
     
     except Exception as e:
         logger.error(f"Error executing prepared query: {e}")

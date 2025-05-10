@@ -58,7 +58,7 @@ _SUPPORTED_FORMATS = {
 
 
 def oxigraph_parse(data: str, format: str = "turtle", base_iri: Optional[str] = None, 
-                store_id: Optional[str] = None) -> Dict[str, Any]:
+                store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Parse RDF data and add to the store.
     
@@ -66,15 +66,15 @@ def oxigraph_parse(data: str, format: str = "turtle", base_iri: Optional[str] = 
         data: RDF data string
         format: Format of the data (turtle, ntriples, nquads, etc.)
         base_iri: Optional base IRI for resolving relative IRIs
-        store_id: Optional ID of the store to use. If None, uses the default store.
+        store_path: Optional path to the store to use. If None, uses the default store.
     
     Returns:
         Success dictionary
     """
-    store = oxigraph_get_store(store_id)
+    store = oxigraph_get_store(store_path)
     
     if not store:
-        raise ValueError(f"Store with ID '{store_id}' not found")
+        raise ValueError(f"Store with path '{store_path}' not found")
     
     # Normalize format string
     format = format.lower()
@@ -295,21 +295,21 @@ def oxigraph_parse(data: str, format: str = "turtle", base_iri: Optional[str] = 
         raise
 
 
-def oxigraph_serialize(format: str = "turtle", store_id: Optional[str] = None) -> Dict[str, Any]:
+def oxigraph_serialize(format: str = "turtle", store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Serialize the store to a string.
     
     Args:
         format: Format for serialization (turtle, ntriples, nquads, etc.)
-        store_id: Optional ID of the store to use. If None, uses the default store.
+        store_path: Optional path to the store to use. If None, uses the default store.
     
     Returns:
         Dictionary with serialized data
     """
-    store = oxigraph_get_store(store_id)
+    store = oxigraph_get_store(store_path)
     
     if not store:
-        raise ValueError(f"Store with ID '{store_id}' not found")
+        raise ValueError(f"Store with path '{store_path}' not found")
     
     # Normalize format string
     format = format.lower()
@@ -522,7 +522,7 @@ def oxigraph_serialize(format: str = "turtle", store_id: Optional[str] = None) -
 
 
 def oxigraph_import_file(file_path: str, format: str = "turtle", base_iri: Optional[str] = None,
-                     store_id: Optional[str] = None) -> Dict[str, Any]:
+                     store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Import RDF data from a file.
     
@@ -530,7 +530,7 @@ def oxigraph_import_file(file_path: str, format: str = "turtle", base_iri: Optio
         file_path: Path to the file
         format: Format of the data (turtle, ntriples, nquads, etc.)
         base_iri: Optional base IRI for resolving relative IRIs
-        store_id: Optional ID of the store to use. If None, uses the default store.
+        store_path: Optional path to the store to use. If None, uses the default store.
     
     Returns:
         Success dictionary
@@ -540,10 +540,10 @@ def oxigraph_import_file(file_path: str, format: str = "turtle", base_iri: Optio
         if not os.path.isfile(file_path):
             raise ValueError(f"File not found: {file_path}")
         
-        store = oxigraph_get_store(store_id)
+        store = oxigraph_get_store(store_path)
         
         if not store:
-            raise ValueError(f"Store with ID '{store_id}' not found")
+            raise ValueError(f"Store with path '{store_path}' not found")
         
         # Try to use direct load method if available
         if hasattr(store, "load"):
@@ -559,7 +559,7 @@ def oxigraph_import_file(file_path: str, format: str = "turtle", base_iri: Optio
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
             
-            return oxigraph_parse(content, format, base_iri, store_id)
+            return oxigraph_parse(content, format, base_iri, store_path)
     
     except Exception as e:
         logger.error(f"Error importing file: {e}")
@@ -567,7 +567,7 @@ def oxigraph_import_file(file_path: str, format: str = "turtle", base_iri: Optio
 
 
 def oxigraph_export_graph(file_path: str, format: str = "turtle", graph_name: Optional[str] = None,
-                      store_id: Optional[str] = None) -> Dict[str, Any]:
+                      store_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Export a graph to a file.
     
@@ -575,14 +575,14 @@ def oxigraph_export_graph(file_path: str, format: str = "turtle", graph_name: Op
         file_path: Path to save the file
         format: Format for serialization (turtle, ntriples, nquads, etc.)
         graph_name: Optional IRI of the graph to export. If None, exports the default graph.
-        store_id: Optional ID of the store to use. If None, uses the default store.
+        store_path: Optional path to the store to use. If None, uses the default store.
     
     Returns:
         Success dictionary
     """
     try:
         # Serialize the store to the specified format
-        serialized = oxigraph_serialize(format, store_id)
+        serialized = oxigraph_serialize(format, store_path)
         
         # Write to file
         with open(file_path, "w", encoding="utf-8") as f:

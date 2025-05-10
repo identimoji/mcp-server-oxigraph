@@ -10,6 +10,3 @@ from .rdf import *
 from .sparql import *
 from .format import *
 from .knowledge_graph import *
-
-# Import the test file to check if this module is being loaded
-from .test import *

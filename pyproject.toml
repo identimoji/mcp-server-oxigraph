@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "pyoxigraph==0.4.9",
-    "fastmcp>=0.3.0",
+    "mcp[cli]>=1.0.0",
 ]
 
 [project.urls]

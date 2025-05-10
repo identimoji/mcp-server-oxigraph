@@ -37,19 +37,55 @@ Add the following to your Claude Desktop MCP configuration:
   "command": "uv",
   "args": ["run", "oxigraph-mcp"],
   "env": {
-    "PYTHONUNBUFFERED": "1"
+    "PYTHONUNBUFFERED": "1",
+    "OXIGRAPH_DEFAULT_STORE": "~/.mcp-server-oxigraph/default.oxigraph"
   }
 }
 ```
+
+### Default Store Configuration
+
+The server manages two types of default stores:
+
+1. **System Default Store**: Located at `~/.mcp-server-oxigraph/default.oxigraph`
+2. **User Default Store**: Specified by setting the `OXIGRAPH_DEFAULT_STORE` environment variable
+
+On startup, the server initializes both stores (if configured):
+- The system default store is always created
+- If a user default store is specified, it's also initialized
+- Operations will use the user default store if specified, otherwise the system default
+
+You don't need to explicitly create or open these stores - they're automatically initialized when the server starts. All operations that don't specify a store ID will use the appropriate default store.
 
 ### Basic Usage Examples
 
 Once configured, you can use the Oxigraph MCP tools in Claude Desktop to work with RDF data:
 
-1. Create a store
-2. Add RDF triples
-3. Query with SPARQL
-4. Manage knowledge graphs
+1. Add RDF triples to the default store
+   ```
+   oxigraph_create_named_node(iri: "http://example.org/subject")
+   oxigraph_create_named_node(iri: "http://example.org/predicate")
+   oxigraph_create_literal(value: "Object value")
+   oxigraph_create_quad(subject: subject, predicate: predicate, object: object)
+   oxigraph_add(quad: quad)
+   ```
+
+2. Query with SPARQL
+   ```
+   oxigraph_query(query: "SELECT * WHERE { ?s ?p ?o } LIMIT 10")
+   ```
+
+3. Create custom stores if needed
+   ```
+   oxigraph_create_store(store_id: "/path/to/my/custom.oxigraph", path: "/path/to/my/custom.oxigraph")
+   oxigraph_query(query: "SELECT * WHERE { ?s ?p ?o }", store_id: "/path/to/my/custom.oxigraph")
+   ```
+
+4. Manage knowledge graphs with higher-level functions
+   ```
+   kg_create_entities(entities: [{"name": "Alice", "entityType": "Person", "observations": ["CEO of Example Corp"]}])
+   kg_search_nodes(query: "Alice")
+   ```
 
 ## API Documentation
 
@@ -59,6 +95,8 @@ Once configured, you can use the Oxigraph MCP tools in Claude Desktop to work wi
 - `oxigraph_open_store`: Open an existing file-based store
 - `oxigraph_close_store`: Close a store and remove it from the manager
 - `oxigraph_list_stores`: List all managed stores
+
+Note: Most operations will work with the default store without needing to specify a store_id. For persistent storage, we recommend using the file path as the store_id for clarity.
 
 ### RDF Data Model Functions
 
