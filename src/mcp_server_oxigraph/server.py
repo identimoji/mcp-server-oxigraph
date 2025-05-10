@@ -2,6 +2,7 @@
 PyOxigraph MCP Server.
 
 This module provides an MCP server implementation that exposes PyOxigraph functionality.
+Designed for stateless operation where each function call is independent.
 """
 
 import os
@@ -9,6 +10,9 @@ import sys
 import json
 import logging
 from mcp.server.fastmcp import FastMCP
+
+# Import utilities
+from .utils import setup_resilient_process
 
 # Import core functionality
 from .core.store import (
@@ -52,19 +56,6 @@ from .core.format import (
     oxigraph_get_supported_formats
 )
 
-# Import knowledge graph functionality
-from .core.knowledge_graph import (
-    kg_create_entities,
-    kg_create_relations,
-    kg_read_graph,
-    kg_search_nodes,
-    kg_open_nodes,
-    kg_add_observations,
-    kg_delete_entities,
-    kg_delete_relations,
-    kg_delete_observations
-)
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -73,99 +64,43 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class OxigraphMCP:
-    """MCP server for PyOxigraph functionality."""
-    
-    def __init__(self):
-        """Initialize the MCP server."""
-        from .core.store import normalize_path
-        from .core.config import get_default_store_path, get_system_default_store_path, has_user_default_store
-        
-        # Log configuration information
-        system_path = normalize_path(get_system_default_store_path())
-        logger.info(f"System default store path: {system_path}")
-        
-        if has_user_default_store():
-            user_path = normalize_path(get_default_store_path())
-            logger.info(f"User default store path: {user_path}")
-        else:
-            logger.info("No user default store configured")
-        
-        # Note: Store initialization is now done explicitly in main()
-
-
 def main():
     """Start the Oxigraph MCP server."""
     # Create MCP server
-    mcp = FastMCP(name="oxigraph-mcp", version="0.1.0")
+    mcp = FastMCP(name="oxigraph", version="0.1.0")
     
-    # Initialize store manager to ensure stores are ready
-    from .core.store import _store_manager
-    from .core.config import get_default_store_path
-    logger.info("Server starting: Explicitly initializing stores")
+    # Log server initialization
+    logger.info("Oxigraph MCP server initializing")
     
-    # Initialize stores
-    _store_manager.initialize_stores()
-    
-    # Log store status after initialization
-    stores = _store_manager.list_stores()
-    logger.info(f"Available stores after initialization: {stores}")
-    
-    # Verify the active default store is working
-    if _store_manager.active_default_path:
-        logger.info(f"Using active default store at '{_store_manager.active_default_path}'")
+    # Initialize a default store if needed
+    try:
+        # Try to create a default store
+        from .core.config import get_default_store_path, get_system_default_store_path
         
-        # Test that we can actually use the store
-        from .core.sparql import oxigraph_query
-        try:
-            result = oxigraph_query("ASK { ?s ?p ?o }", store_path=_store_manager.active_default_path)
-            logger.info(f"Verified default store is accessible")
-        except Exception as query_e:
-            logger.error(f"Default store exists but query failed: {query_e}")
-            logger.info("Trying to recreate store")
-            
-            # If the store doesn't work, try to create it
-            from .core.store import oxigraph_create_store
+        # Try user store path first
+        user_path = get_default_store_path()
+        if user_path:
             try:
-                # Try user store path first
-                user_path = get_default_store_path()
-                if user_path:
-                    logger.info(f"Creating user store at: {user_path}")
-                    oxigraph_create_store(user_path)
-                    logger.info("Successfully created user store")
-                else:
-                    # Fall back to system path
-                    logger.info(f"Creating system store at: {_store_manager.system_store_path}")
-                    oxigraph_create_store(_store_manager.system_store_path)
-                    logger.info("Successfully created system store")
-            except Exception as create_e:
-                logger.error(f"Failed to create store: {create_e}")
-    else:
-        logger.error("No active default store available!")
-    
-    # Configure to never exit on stdin EOF
-    import time
-    import signal
-    
-    # Override sys.exit to prevent it from being called
-    original_exit = sys.exit
-    def exit_prevention(code=0):
-        print(f"Exit prevented with code {code}", file=sys.stderr)
-    sys.exit = exit_prevention
-    
-    # Set up signal handlers to prevent termination
-    def handle_signal(sig, frame):
-        print(f"Signal {sig} ignored", file=sys.stderr)
-    for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT]:
+                logger.info(f"Creating/opening user default store at: {user_path}")
+                result = oxigraph_create_store(user_path)
+                logger.info(f"Default store: {result.get('store', user_path)}")
+            except Exception as e:
+                logger.error(f"Failed to create user default store: {e}")
+        
+        # Then try system path
+        system_path = get_system_default_store_path()
         try:
-            signal.signal(sig, handle_signal)
-        except Exception:
-            pass  # Some signals might not be available on all platforms
+            logger.info(f"Creating/opening system default store at: {system_path}")
+            result = oxigraph_create_store(system_path)
+            logger.info(f"System default store: {result.get('store', system_path)}")
+        except Exception as e:
+            logger.error(f"Failed to create system default store: {e}")
+    except Exception as e:
+        logger.error(f"Error initializing default stores: {e}")
+        logger.info("Continuing despite store initialization errors")
     
-    # Force unbuffered mode for all IO
-    os.environ['PYTHONUNBUFFERED'] = '1'
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
-    sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
+    # Configure to never exit on stdin EOF and handle signals
+    original_exit = setup_resilient_process()
     
     # Register core store management functions
     mcp.tool()(oxigraph_create_store)
@@ -202,17 +137,6 @@ def main():
     mcp.tool()(oxigraph_import_file)
     mcp.tool()(oxigraph_export_graph)
     mcp.tool()(oxigraph_get_supported_formats)
-    
-    # Register knowledge graph functions
-    mcp.tool()(kg_create_entities)
-    mcp.tool()(kg_create_relations)
-    mcp.tool()(kg_read_graph)
-    mcp.tool()(kg_search_nodes)
-    mcp.tool()(kg_open_nodes)
-    mcp.tool()(kg_add_observations)
-    mcp.tool()(kg_delete_entities)
-    mcp.tool()(kg_delete_relations)
-    mcp.tool()(kg_delete_observations)
     
     # Start the server
     logger.info("Oxigraph MCP server starting...")

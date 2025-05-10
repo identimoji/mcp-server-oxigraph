@@ -9,4 +9,4 @@ from .store import *
 from .rdf import *
 from .sparql import *
 from .format import *
-from .knowledge_graph import *
+# Direct PyOxigraph wrapper only - no knowledge graph functionality

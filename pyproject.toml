@@ -32,7 +32,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/identimoji/mcp-server-oxigraph/issues"
 
 [project.scripts]
-oxigraph-mcp = "mcp_server_oxigraph.__main__:main"
+mcp-server-oxigraph = "mcp_server_oxigraph.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_server_oxigraph"]

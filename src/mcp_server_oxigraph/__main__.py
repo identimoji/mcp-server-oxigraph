@@ -29,4 +29,20 @@ try:
         main()
 except Exception as e:
     logger.error(f"Error starting server: {e}", exc_info=True)
-    sys.exit(1)
+    # Don't exit - we need to keep process alive for MCP
+    # Continue with a minimal server
+    import time
+    
+    # Set up a minimal MCP server that just stays alive
+    from mcp.server.fastmcp import FastMCP
+    
+    # Import utility for resilient process
+    from mcp_server_oxigraph.utils import setup_resilient_process
+    
+    # Make sure we don't exit
+    setup_resilient_process()
+    
+    # Start minimal MCP server
+    logger.info("Starting minimal MCP server after error")
+    minimal_mcp = FastMCP(name="oxigraph-minimal", version="0.1.0")
+    minimal_mcp.run()

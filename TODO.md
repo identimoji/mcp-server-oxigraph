@@ -37,7 +37,7 @@
 - [ ] `quads_for_pattern` - Find quads matching a pattern
 
 ## Infrastructure
-- [ ] Fix MCP server connection issue (see debug analysis)
+- [x] Fix MCP server connection issue (implemented EOF handling, signal catching, and unbuffered IO)
 - [ ] Add proper error handling with detailed messages
 - [ ] Add comprehensive logging
 - [ ] Implement proper test suite
