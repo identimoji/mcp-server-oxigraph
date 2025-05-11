@@ -1,16 +1,74 @@
 # Oxigraph MCP Server
-A Model Context Protocol (MCP) server for [PyOxigraph](https://github.com/oxigraph/oxigraph/tree/main/python), providing direct access to PyOxigraph functionality through the MCP protocol.
 
-## Overview
+A Model Context Protocol (MCP) server for [Oxigraph](https://github.com/oxigraph/oxigraph), a fast and lightweight RDF triple store with SPARQL support.
 
-This package provides a clean, direct wrapper for PyOxigraph that exposes all its functionality through the Model Context Protocol (MCP). It follows a consistent naming convention and organization, making it easy to use PyOxigraph's RDF and SPARQL capabilities from any MCP client.
+Oxigraph is a high-performance in-memory or file-based RDF graph database written in Rust. This MCP server provides a Claude-friendly wrapper for accessing PyOxigraph (the Python bindings for Oxigraph) through the Model Context Protocol.
+
+## Quickstart
+
+### Installation
+
+```bash
+uv pip install mcp-server-oxigraph
+```
+
+### Minimal Claude Desktop Configuration
+
+Add the following to your Claude Desktop MCP configuration:
+
+```json
+"oxigraph": {
+  "command": "uv",
+  "args": ["run", "mcp-server-oxigraph"],
+  "env": {}
+}
+```
+
+### Setting a Default Database (Optional)
+
+To set a specific default database location, add the `OXIGRAPH_DEFAULT_STORE` environment variable:
+
+```json
+"oxigraph": {
+  "command": "uv",
+  "args": ["run", "mcp-server-oxigraph"],
+  "env": {
+    "OXIGRAPH_DEFAULT_STORE": "~/.claude/my_knowledge_graph.oxigraph"
+  }
+}
+```
+
+## Why Use Oxigraph MCP?
+
+Oxigraph MCP is ideal for:
+
+- **Quickly building knowledge bases**: Store structured information in a queryable graph database
+- **Prototyping semantic applications**: Test data models and queries interactively
+- **Schema development**: Design and test RDF schemas and ontologies
+- **Local data storage**: Maintain persistent data without external services
+- **SPARQL exploration**: Experiment with complex SPARQL queries in an interactive environment
 
 ## Features
 
-- **Store Management**: Create, open, close, backup, restore, and manage RDF stores
-- **RDF Data Model**: Create and manipulate RDF nodes, literals, and quads
-- **SPARQL Operations**: Execute SPARQL queries and updates with full result binding support
-- **Serialization**: Parse and serialize RDF data in various formats (Turtle, N-Triples, N-Quads, TriG, RDF/XML, N3)
+This MCP server provides:
+
+- **Direct PyOxigraph access**: Clean, stateless wrapper for PyOxigraph functionality
+- **Multiple store management**: Create, open, and manage multiple file-based stores
+- **Comprehensive RDF support**: Work with all core RDF data types and operations
+- **Full SPARQL implementation**: Execute queries and updates with properly structured results
+- **Rich serialization options**: Support for all major RDF formats
+
+## About Oxigraph
+
+[Oxigraph](https://github.com/oxigraph/oxigraph) is an open-source RDF triple store implemented in Rust. Key features include:
+
+- Fast in-memory or file-based storage using RocksDB
+- Full SPARQL 1.1 Query and Update support
+- Compliance with W3C standards
+- Support for various RDF serialization formats
+- Extremely low memory footprint compared to other graph databases
+
+This MCP server uses [PyOxigraph](https://github.com/oxigraph/oxigraph/tree/main/python), the official Python bindings for Oxigraph.
 
 ## Supported RDF Formats
 
@@ -27,36 +85,7 @@ The Oxigraph MCP server supports the following RDF serialization formats:
 
 You can retrieve this information programmatically using the `oxigraph_get_supported_formats()` function.
 
-## Installation
-
-```bash
-pip install mcp-server-oxigraph
-```
-
-Or with UV:
-
-```bash
-uv pip install mcp-server-oxigraph
-```
-
-## Usage
-
-### Configure Claude Desktop to use Oxigraph MCP
-
-Add the following to your Claude Desktop MCP configuration:
-
-```json
-"oxigraph": {
-  "command": "uv",
-  "args": ["run", "mcp-server-oxigraph"],
-  "env": {
-    "PYTHONUNBUFFERED": "1",
-    "OXIGRAPH_DEFAULT_STORE": "~/.mcp-server-oxigraph/default.oxigraph"
-  }
-}
-```
-
-### Default Store Configuration
+## Default Store Configuration
 
 The server manages two types of default stores:
 
@@ -70,9 +99,9 @@ On startup, the server initializes both stores (if configured):
 
 You don't need to explicitly create or open these stores - they're automatically initialized when the server starts. All operations that don't specify a store path will use the appropriate default store.
 
-### Basic Usage Examples
+## Basic Usage Examples
 
-Once configured, you can use the Oxigraph MCP tools in Claude Desktop to work with RDF data:
+Once configured, you can use the Oxigraph MCP tools in Claude to work with RDF data:
 
 1. Add RDF triples to the default store
    ```
