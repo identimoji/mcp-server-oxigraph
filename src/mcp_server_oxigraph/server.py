@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 def main():
     """Start the Oxigraph MCP server."""
     # Create MCP server
-    mcp = FastMCP(name="oxigraph", version="0.1.0")
+    mcp = FastMCP(name="oxigraph")
     
     # Log server initialization
     logger.info("Oxigraph MCP server initializing")
